@@ -1,0 +1,24 @@
+[build]
+  command = "npm run data:build && npm run test:run && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+  PYTHON_VERSION = "3.11"
+  VITE_DATA_MODE = "mock"
+  VITE_DATA_SCHEMA_VERSION = "1"
+
+[[headers]]
+  for = "/data/v1/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=300, must-revalidate"
+
+[[headers]]
+  for = "/data/v1/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

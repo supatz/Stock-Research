@@ -1,0 +1,21 @@
+.DS_Store
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+.env
+.env.*
+!.env.example
+
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+pipeline/cache/
+logs/*.log
+
+# Generated snapshots are reproducible. Keep only checked-in samples/fixtures.
+public/data/v1/stocks/

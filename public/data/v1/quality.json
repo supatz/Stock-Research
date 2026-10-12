@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "marketDate": "2026-10-12",
+  "generatedAt": "2026-10-12T22:06:21.729100Z",
+  "pipelineVersion": "6345f9f",
+  "dataSources": [
+    "bootstrap:no-live-market-data"
+  ],
+  "payload": {
+    "status": "warning",
+    "fatalErrors": [],
+    "warnings": [
+      "No live market-data adapter has been configured."
+    ],
+    "checks": {
+      "manifestGenerated": true,
+      "liveDataAvailable": false,
+      "sectorBenchmarksConfigured": true
+    }
+  }
+}

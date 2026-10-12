@@ -1,0 +1,95 @@
+export type Tone = 'positive' | 'negative' | 'caution' | 'neutral' | 'info';
+export type StateIcon = 'up' | 'down' | 'mixed' | 'caution' | 'neutral';
+
+export interface StatePresentation {
+  label: string;
+  tone: Tone;
+  icon: StateIcon;
+}
+
+const STATE_PRESENTATION: Record<string, StatePresentation> = {
+  STRONG_UPTREND: { label: 'Strong uptrend', tone: 'positive', icon: 'up' },
+  UPTREND: { label: 'Uptrend', tone: 'positive', icon: 'up' },
+  MIXED: { label: 'Mixed', tone: 'neutral', icon: 'mixed' },
+  DOWNTREND: { label: 'Downtrend', tone: 'negative', icon: 'down' },
+  STRONG_DOWNTREND: { label: 'Strong downtrend', tone: 'negative', icon: 'down' },
+  INSUFFICIENT: { label: 'Insufficient history', tone: 'neutral', icon: 'neutral' },
+  MOMENTUM_WEAK_OVERSOLD: { label: 'Weak / oversold', tone: 'info', icon: 'down' },
+  MOMENTUM_WEAK: { label: 'Weak', tone: 'negative', icon: 'down' },
+  MOMENTUM_NEUTRAL: { label: 'Neutral', tone: 'neutral', icon: 'neutral' },
+  MOMENTUM_POSITIVE: { label: 'Positive', tone: 'info', icon: 'up' },
+  MOMENTUM_EXTENDED: { label: 'Strong / extended', tone: 'caution', icon: 'caution' },
+  LEADING_MARKET_AND_SECTOR: { label: 'Leading market and sector', tone: 'positive', icon: 'up' },
+  LEADING_MARKET: { label: 'Leading market', tone: 'positive', icon: 'up' },
+  LEADING_SECTOR: { label: 'Leading sector', tone: 'info', icon: 'up' },
+  IN_LINE: { label: 'In line', tone: 'neutral', icon: 'mixed' },
+  LAGGING: { label: 'Lagging', tone: 'negative', icon: 'down' },
+  VOL_QUIET: { label: 'Quiet', tone: 'neutral', icon: 'neutral' },
+  VOL_NORMAL: { label: 'Normal', tone: 'neutral', icon: 'neutral' },
+  VOL_ELEVATED: { label: 'Elevated', tone: 'caution', icon: 'caution' },
+  VOL_EXTREME: { label: 'Extreme', tone: 'caution', icon: 'caution' },
+  PARTICIPATION_LIGHT: { label: 'Light', tone: 'neutral', icon: 'down' },
+  PARTICIPATION_NORMAL: { label: 'Normal', tone: 'neutral', icon: 'neutral' },
+  PARTICIPATION_ACTIVE: { label: 'Active', tone: 'info', icon: 'up' },
+  PARTICIPATION_EXCEPTIONAL: { label: 'Exceptional', tone: 'caution', icon: 'caution' },
+  RETURN_POSITIVE: { label: 'Positive', tone: 'positive', icon: 'up' },
+  RETURN_NEGATIVE: { label: 'Negative', tone: 'negative', icon: 'down' },
+  RETURN_FLAT: { label: 'Flat', tone: 'neutral', icon: 'mixed' },
+  DRAWDOWN_AT_PEAK: { label: 'At peak', tone: 'neutral', icon: 'neutral' },
+  DRAWDOWN_SHALLOW: { label: 'Shallow', tone: 'neutral', icon: 'neutral' },
+  DRAWDOWN_MODERATE: { label: 'Moderate', tone: 'caution', icon: 'caution' },
+  DRAWDOWN_DEEP: { label: 'Deep', tone: 'caution', icon: 'down' },
+  DISTANCE_NEAR_HIGH: { label: 'Near high', tone: 'neutral', icon: 'up' },
+  DISTANCE_OFF_HIGH: { label: 'Off the high', tone: 'neutral', icon: 'mixed' },
+  DISTANCE_PULLED_BACK: { label: 'Pulled back', tone: 'caution', icon: 'down' },
+  DISTANCE_NEAR_LOW: { label: 'Near low', tone: 'caution', icon: 'down' },
+  DISTANCE_ABOVE_LOW: { label: 'Above the low', tone: 'neutral', icon: 'up' },
+  SLOPE_RISING: { label: 'Rising', tone: 'info', icon: 'up' },
+  SLOPE_FALLING: { label: 'Falling', tone: 'info', icon: 'down' },
+  SLOPE_FLAT: { label: 'Flat', tone: 'neutral', icon: 'mixed' },
+  HIST_POSITIVE: { label: 'Positive', tone: 'neutral', icon: 'up' },
+  HIST_NEGATIVE: { label: 'Negative', tone: 'neutral', icon: 'down' },
+  HIST_FLAT: { label: 'Flat', tone: 'neutral', icon: 'mixed' },
+  MACD_ABOVE_SIGNAL: { label: 'Above signal', tone: 'neutral', icon: 'up' },
+  MACD_BELOW_SIGNAL: { label: 'Below signal', tone: 'neutral', icon: 'down' },
+  ADX_WEAK: { label: 'Weak trend', tone: 'neutral', icon: 'mixed' },
+  ADX_DEVELOPING: { label: 'Developing', tone: 'info', icon: 'mixed' },
+  ADX_TRENDING: { label: 'Trending', tone: 'info', icon: 'up' },
+  ADX_STRONG: { label: 'Very strong trend', tone: 'info', icon: 'up' },
+  STRUCTURE_AT_HIGH: { label: 'At the high', tone: 'neutral', icon: 'up' },
+  STRUCTURE_AT_LOW: { label: 'At the low', tone: 'caution', icon: 'down' },
+  STRUCTURE_INSIDE: { label: 'Inside the range', tone: 'neutral', icon: 'mixed' },
+  BREAKOUT_CONFIRMED: { label: 'Breakout with volume', tone: 'info', icon: 'up' },
+  BREAKOUT_PRICE_ONLY: { label: 'New high, ordinary volume', tone: 'neutral', icon: 'up' },
+  BREAKOUT_NONE: { label: 'No breakout', tone: 'neutral', icon: 'neutral' },
+  CMF_POSITIVE: { label: 'Positive flow', tone: 'neutral', icon: 'up' },
+  CMF_NEGATIVE: { label: 'Negative flow', tone: 'neutral', icon: 'down' },
+  CMF_NEUTRAL: { label: 'Flat flow', tone: 'neutral', icon: 'mixed' },
+  UNAVAILABLE: { label: 'Unavailable', tone: 'neutral', icon: 'neutral' },
+  REGIME_RISK_ON: { label: 'Risk-on / broad strength', tone: 'info', icon: 'up' },
+  REGIME_POSITIVE_NARROWING: { label: 'Positive but narrowing', tone: 'info', icon: 'mixed' },
+  REGIME_MIXED: { label: 'Mixed / range-bound', tone: 'neutral', icon: 'mixed' },
+  REGIME_DEFENSIVE: { label: 'Defensive / weakening', tone: 'caution', icon: 'down' },
+  REGIME_RISK_OFF: { label: 'Broad risk-off', tone: 'negative', icon: 'down' },
+  BREADTH_BROAD: { label: 'Broad', tone: 'info', icon: 'up' },
+  BREADTH_SELECTIVE: { label: 'Selective', tone: 'neutral', icon: 'mixed' },
+  BREADTH_NARROW: { label: 'Narrow', tone: 'caution', icon: 'down' },
+  PRICE_ABOVE: { label: 'Above', tone: 'info', icon: 'up' },
+  PRICE_BELOW: { label: 'Below', tone: 'caution', icon: 'down' },
+  VIX_QUIET: { label: 'Quiet', tone: 'neutral', icon: 'neutral' },
+  VIX_NORMAL: { label: 'Normal', tone: 'neutral', icon: 'neutral' },
+  VIX_ELEVATED: { label: 'Elevated', tone: 'caution', icon: 'caution' },
+  VIX_EXTREME: { label: 'Extreme', tone: 'caution', icon: 'caution' },
+  NEWHIGH_LEAD: { label: 'More highs than lows', tone: 'info', icon: 'up' },
+  NEWLOW_LEAD: { label: 'More lows than highs', tone: 'caution', icon: 'down' },
+  NEW_BALANCED: { label: 'Balanced', tone: 'neutral', icon: 'mixed' },
+  COUNT: { label: 'Count', tone: 'neutral', icon: 'neutral' },
+};
+
+export function presentationForState(state: string): StatePresentation {
+  return STATE_PRESENTATION[state] ?? { label: state, tone: 'neutral', icon: 'neutral' };
+}
+
+export function isKnownState(state: string): boolean {
+  return Object.prototype.hasOwnProperty.call(STATE_PRESENTATION, state);
+}
