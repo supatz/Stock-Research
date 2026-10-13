@@ -111,9 +111,11 @@ IDs are API-like identifiers: avoid changing them after release.
 `netlify.toml` runs snapshot generation, tests, and the Vite build, then
 publishes `dist/`. SPA redirects support `/stocks/:ticker`.
 
-The GitHub Actions workflow can trigger a Netlify Build Hook on US weekdays.
-Store the hook only in the repository secret `NETLIFY_BUILD_HOOK`. A failed
-Netlify build preserves the prior successful deploy.
+A Netlify Build Hook schedule template lives at
+`docs/github-workflows/trigger-netlify.yml`. Copy it to `.github/workflows/`
+after the GitHub credential has the `workflow` scope. Store the hook only in
+the repository secret `NETLIFY_BUILD_HOOK`. A failed Netlify build preserves
+the prior successful deploy.
 
 Before public deployment, verify the current market-data provider's display and
 redistribution terms. Open-source library licenses do not grant market-data

@@ -48,10 +48,20 @@ tests, and building the frontend. Once the Netlify site exists:
 3. Create a Netlify build hook.
 4. Save that URL in the GitHub repository secret `NETLIFY_BUILD_HOOK`.
 
-The weekday GitHub workflow triggers at 23:30 UTC. Because GitHub cron is UTC,
-this is 7:30 PM New York during daylight time and 6:30 PM in winter. The live
-pipeline must inspect the exchange calendar/latest market date rather than
-assuming every weekday is a trading day.
+The scheduled Netlify trigger workflow is checked in as a template at
+`docs/github-workflows/trigger-netlify.yml` because GitHub requires a PAT with
+the `workflow` scope before that file can live under `.github/workflows/`.
+
+To enable it:
+
+1. Update the personal GitHub PAT (or SSH auth) so it can write workflow files.
+2. Copy the template into `.github/workflows/trigger-netlify.yml`.
+3. Commit and push.
+4. Add the repository secret `NETLIFY_BUILD_HOOK`.
+
+The weekday schedule is 23:30 UTC. That is 7:30 PM New York during daylight
+time and 6:30 PM in winter. The live pipeline must inspect the exchange
+calendar/latest market date rather than assuming every weekday is a trading day.
 
 ## New-computer recovery
 
