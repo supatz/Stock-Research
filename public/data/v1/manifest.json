@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "marketDate": "2026-10-12",
-  "generatedAt": "2026-10-12T22:06:21.729100Z",
-  "pipelineVersion": "6345f9f",
+  "marketDate": "2026-10-13",
+  "generatedAt": "2026-10-13T17:38:50.597060Z",
+  "pipelineVersion": "ac02c07",
   "dataSources": [
     "bootstrap:no-live-market-data"
   ],
   "payload": {
     "mode": "bootstrap",
-    "latestSnapshot": "2026-10-12",
+    "latestSnapshot": "2026-10-13",
     "marketDataSource": "yahoo",
     "available": false,
     "message": "Live snapshots are not configured; use VITE_DATA_MODE=mock."
