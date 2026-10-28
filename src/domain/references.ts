@@ -22,6 +22,7 @@ export const REFERENCE_REGISTRY = {
   'section.stock.snapshot': { name: 'Technical Snapshot', page: 'Stock Detail' },
   'section.stock.chart': { name: 'Main Chart', page: 'Stock Detail' },
   'section.stock.price-performance': { name: 'Price Performance', page: 'Stock Detail' },
+  'section.stock.financials': { name: 'Financial Details', page: 'Stock Detail' },
   'section.stock.trend': { name: 'Trend', page: 'Stock Detail' },
   'section.stock.momentum': { name: 'Momentum', page: 'Stock Detail' },
   'section.stock.relative-strength': { name: 'Relative Strength', page: 'Stock Detail' },

@@ -51,3 +51,6 @@ export function capTierFor(marketCapUsd: number): 'mega' | 'large' {
 
 export const PROVENANCE_NOTE =
   'Deterministic mock snapshot for interface development. These figures are not live market data and are not investment advice.';
+
+/** Default TradingView saved-layout id used by Stock Detail → Main Chart. */
+export const TRADINGVIEW_CHART_ID = 'aLaCB4SB';

@@ -5,6 +5,16 @@ import { PercentileRail } from '@/components/data-display/PercentileRail';
 import { StateBadge } from '@/components/data-display/StateBadge';
 import { MetricHelp } from '@/components/metrics/MetricHelp';
 
+function signedToneClass(definition: MetricDefinition, observation: MetricObservation): string {
+  const signedModes = new Set(['HIGHER_IS_STRONGER', 'TWO_SIDED_RISK', 'LOWER_IS_BETTER']);
+  if (!signedModes.has(definition.interpretationMode)) return '';
+  const raw = observation.rawValue;
+  if (typeof raw !== 'number' || Number.isNaN(raw)) return '';
+  if (raw > 0.0001) return 'signed-up';
+  if (raw < -0.0001) return 'signed-down';
+  return '';
+}
+
 export function MetricCard({
   definition,
   observation,
@@ -15,6 +25,7 @@ export function MetricCard({
   variant?: 'default' | 'compact';
 }) {
   const quality = observation.dataQuality;
+  const valueTone = signedToneClass(definition, observation);
   return (
     <article className={variant === 'compact' ? 'metric-card is-compact' : 'metric-card'}>
       <div className="metric-label-row">
@@ -22,7 +33,7 @@ export function MetricCard({
         <MetricHelp definition={definition} />
       </div>
       <div className="metric-value-row">
-        <p className="metric-value">{observation.displayValue}</p>
+        <p className={`metric-value ${valueTone}`}>{observation.displayValue}</p>
         <StateBadge state={observation.interpretation.state} />
       </div>
       <p className="metric-reading">{observation.interpretation.shortText}</p>

@@ -24,6 +24,7 @@ registry; do not reuse or casually rename released IDs.
 - `section.stock.snapshot`
 - `section.stock.chart`
 - `section.stock.price-performance`
+- `section.stock.financials`
 - `section.stock.trend`
 - `section.stock.momentum`
 - `section.stock.relative-strength`

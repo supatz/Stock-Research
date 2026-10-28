@@ -38,6 +38,7 @@ import type {
   CrossSectionComparison,
   DataManifest,
   DataQualityStatus,
+  FinancialPeriod,
   HistoricalComparison,
   HorizonSet,
   MarketOverview,
@@ -47,6 +48,7 @@ import type {
   SectorLeadershipRow,
   OHLCVPoint,
   StockDetail,
+  StockFinancials,
   StockSummary,
 } from '@/domain/types';
 import { buildSeries, type SeriesStats } from '@/data/mock/history';
@@ -414,6 +416,50 @@ function seriesFor(seed: StockSeed): SeriesStats {
   });
 }
 
+function hashTicker(ticker: string): number {
+  let value = 0;
+  for (let index = 0; index < ticker.length; index += 1) {
+    value = (value * 31 + ticker.charCodeAt(index)) % 10_000;
+  }
+  return value;
+}
+
+function buildFinancials(seed: StockSeed): StockFinancials {
+  const hash = hashTicker(seed.ticker);
+  const baseRevenue = seed.marketCapB * (0.12 + (hash % 17) / 100);
+  const periods: FinancialPeriod[] = [];
+  for (let year = 2021; year <= 2025; year += 1) {
+    const age = year - 2021;
+    const growth = 1 + seed.growth / 100;
+    const revenue = roundTo(baseRevenue * growth ** age * (0.92 + ((hash + age * 7) % 11) / 100), 2) * 1e9;
+    const operatingMargin = roundTo(8 + (hash % 20) + age * 0.4 - (seed.kind === 'peak' ? 4 : 0), 1);
+    const grossMargin = roundTo(Math.min(78, operatingMargin + 18 + (hash % 9)), 1);
+    const netMargin = roundTo(operatingMargin - 2.4 + ((hash + age) % 5) * 0.2, 1);
+    const netIncome = roundTo(revenue * (netMargin / 100), 2);
+    const shares = Math.max(0.4, seed.marketCapB / Math.max(seed.price, 1));
+    const eps = roundTo(netIncome / (shares * 1e9), 2);
+    const freeCashFlow = roundTo(netIncome * (0.75 + ((hash + age * 3) % 8) / 20), 2);
+    periods.push({
+      period: `FY${year}`,
+      revenue,
+      netIncome,
+      eps,
+      grossMargin,
+      operatingMargin,
+      freeCashFlow,
+    });
+  }
+  const latest = periods[periods.length - 1]!;
+  const prior = periods[periods.length - 2]!;
+  const revenueGrowth = prior.revenue ? ((latest.revenue / prior.revenue) - 1) * 100 : 0;
+  return {
+    currency: 'USD',
+    periods,
+    takeaway: `${seed.ticker} mock financials show FY${latest.period.slice(2)} revenue of ${formatDollars(latest.revenue)} with operating margin ${formatPercent(latest.operatingMargin, 1, false)}. Year-over-year revenue is ${formatPercent(revenueGrowth)}.`,
+    provenance: 'Deterministic mock fundamentals for interface development — not reported company filings.',
+  };
+}
+
 function qualityMessage(seed: StockSeed, sessions: number): string | undefined {
   if (seed.quality === 'stale') {
     return `Stale price: last close is ${seed.endDate}, before the market date ${UNIVERSE_CONFIG.marketDate}.`;
@@ -641,6 +687,7 @@ function assembleStock(
   };
 
   const direction = stats.changePct >= 0 ? 'up' : 'down';
+  const financials = buildFinancials(seed);
   const detail: StockDetail = {
     summary,
     metrics,
@@ -703,6 +750,7 @@ function assembleStock(
       volume: `${participation.shortText} The latest session was ${direction} ${formatPercent(stats.changePct)}.`,
       structure: `${breakoutReading(breakoutKind).shortText} Distance from the 52-week high is ${formatPercent(stats.distHigh)}.`,
       market: `${regime.summary} ${sector.label} versus SPY over three months is ${formatPercent(sectorExcess3m)}.`,
+      financials: financials.takeaway,
     },
     movingAverages: {
       sma20: stats.sma20,
@@ -734,6 +782,7 @@ function assembleStock(
       maxDrawdown1y: stats.maxDrawdown1y,
       windowComplete: stats.windowComplete,
     },
+    financials,
     sessions: stats.sessions,
   };
 

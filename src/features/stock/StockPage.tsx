@@ -10,11 +10,13 @@ import { ErrorState } from '@/components/feedback/States';
 import { SectionHeader } from '@/components/layout/SectionHeader';
 import { formatMarketCap, formatPrice } from '@/domain/metrics/format';
 import { ReferenceTag } from '@/components/layout/ReferenceTag';
+import { FinancialsPanel } from '@/features/stock/FinancialsPanel';
+import { Range52WeekCard } from '@/features/stock/Range52WeekCard';
 import { RelativeStrengthMatrix } from '@/features/stock/RelativeStrengthMatrix';
 import { TrendStack } from '@/features/stock/TrendStack';
 import { useAsync } from '@/lib/useAsync';
 
-const PriceChart = lazy(() => import('@/components/charts/PriceChart'));
+const TradingViewPanel = lazy(() => import('@/components/charts/TradingViewPanel'));
 
 function scrollToSection(id: string) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -26,7 +28,6 @@ export default function StockPage() {
   const provider = useStockDataProvider();
   const normalized = ticker.toUpperCase();
   const stockState = useAsync(() => provider.getStockTechnicals(normalized), [provider, normalized]);
-  const historyState = useAsync(() => provider.getStockHistory(normalized), [provider, normalized]);
   const { addTicker, removeTicker, hasTicker } = useWatchlist();
   const { pushToast } = useToast();
 
@@ -36,7 +37,7 @@ export default function StockPage() {
     }
   }, [stockState.data]);
 
-  if (stockState.status === 'loading' || historyState.status === 'loading') {
+  if (stockState.status === 'loading') {
     return <PageSkeleton label={`Loading ${normalized || 'stock'}`} />;
   }
   if (stockState.status === 'error' || !stockState.data) {
@@ -80,7 +81,9 @@ export default function StockPage() {
         <div className="price-line">
           <p className="metric-value">{formatPrice(summary.price)}</p>
           <SignedValue value={summary.dailyChangePct} />
-          <span className="num">{summary.dailyChange >= 0 ? '+' : ''}{summary.dailyChange.toFixed(2)}</span>
+          <span className={`num ${summary.dailyChange >= 0 ? 'signed-up' : 'signed-down'}`}>
+            {summary.dailyChange >= 0 ? '+' : ''}{summary.dailyChange.toFixed(2)}
+          </span>
         </div>
         <div className="header-actions">
           <DataTimestamp asOf={summary.asOf} stale={summary.quality === 'stale'} />
@@ -99,22 +102,26 @@ export default function StockPage() {
               key={dimension.id}
               type="button"
               className="ribbon-card"
+              title={dimension.shortText}
+              aria-label={`${dimension.label}: ${dimension.state}. ${dimension.shortText}`}
               onClick={() => scrollToSection(dimension.sectionId)}
             >
               <span className="ribbon-label">{dimension.label}</span>
               <StateBadge state={dimension.state} />
               <span className="ribbon-primary">{dimension.primary}</span>
-              <span className="ribbon-text">{dimension.shortText}</span>
             </button>
           ))}
         </div>
       </section>
 
       <section id="section.stock.chart" className="section-block" aria-labelledby="section.stock.chart-title">
-        <SectionHeader referenceId="section.stock.chart" description="Candles and volume from the mock path. SMA 50 is on by default." />
-        <div className="chart-slot">
-          <Suspense fallback={<PageSkeleton label="Loading chart" />}>
-            {historyState.data ? <PriceChart points={historyState.data} ticker={summary.ticker} /> : <p>Price history is unavailable.</p>}
+        <SectionHeader
+          referenceId="section.stock.chart"
+          description={`TradingView chart for ${summary.exchange}:${summary.ticker}. Use My TradingView for your saved drawings, or Embedded chart for an in-page widget.`}
+        />
+        <div className="chart-slot tv-slot">
+          <Suspense fallback={<PageSkeleton label="Loading TradingView" />}>
+            <TradingViewPanel ticker={summary.ticker} exchange={summary.exchange} />
           </Suspense>
         </div>
       </section>
@@ -122,10 +129,22 @@ export default function StockPage() {
       <section id="section.stock.price-performance" className="section-block" aria-labelledby="section.stock.price-performance-title">
         <SectionHeader referenceId="section.stock.price-performance" description={detail.takeaways.performance} />
         <div className="card-grid">
-          {['return.1d', 'return.5d', 'return.1m', 'return.3m', 'return.6m', 'return.ytd', 'return.1y', 'distance.52w-high', 'distance.52w-low'].map((id) => (
+          {['return.1m', 'return.3m', 'return.6m', 'return.1y'].map((id) => (
             <MetricSlot key={id} id={id} metrics={detail.metrics} />
           ))}
+          <Range52WeekCard
+            high={detail.metrics['distance.52w-high']}
+            low={detail.metrics['distance.52w-low']}
+          />
         </div>
+      </section>
+
+      <section id="section.stock.financials" className="section-block" aria-labelledby="section.stock.financials-title">
+        <SectionHeader
+          referenceId="section.stock.financials"
+          description={detail.takeaways.financials}
+        />
+        <FinancialsPanel financials={detail.financials} />
       </section>
 
       <section id="section.stock.trend" className="section-block" aria-labelledby="section.stock.trend-title">
@@ -176,9 +195,13 @@ export default function StockPage() {
       <section id="section.stock.price-structure" className="section-block" aria-labelledby="section.stock.price-structure-title">
         <SectionHeader referenceId="section.stock.price-structure" description={detail.takeaways.structure} />
         <div className="card-grid">
-          {['structure.20d', 'structure.55d', 'structure.breakout', 'distance.52w-high', 'distance.52w-low'].map((id) => (
+          {['structure.20d', 'structure.55d', 'structure.breakout'].map((id) => (
             <MetricSlot key={id} id={id} metrics={detail.metrics} />
           ))}
+          <Range52WeekCard
+            high={detail.metrics['distance.52w-high']}
+            low={detail.metrics['distance.52w-low']}
+          />
         </div>
       </section>
 

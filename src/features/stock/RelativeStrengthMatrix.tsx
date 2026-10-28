@@ -14,11 +14,15 @@ const HORIZONS = [
 function Cell({ observation }: { observation: MetricObservation | undefined }) {
   if (!observation) return <td>—</td>;
   const definition = getMetricDefinition(observation.metricId);
+  const raw = observation.rawValue;
+  const tone = typeof raw === 'number'
+    ? raw > 0.0001 ? 'signed-up' : raw < -0.0001 ? 'signed-down' : ''
+    : '';
   return (
     <td>
       <div className="matrix-cell">
         <div className="matrix-cell-top">
-          <span className="num">{observation.displayValue}</span>
+          <span className={`num ${tone}`}>{observation.displayValue}</span>
           <MetricHelp definition={definition} />
         </div>
         <StateBadge state={observation.interpretation.state} />

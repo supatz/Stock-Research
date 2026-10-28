@@ -201,6 +201,23 @@ export interface DimensionState {
     | 'section.stock.market-context';
 }
 
+export interface FinancialPeriod {
+  period: string;
+  revenue: number;
+  netIncome: number;
+  eps: number;
+  grossMargin: number;
+  operatingMargin: number;
+  freeCashFlow: number;
+}
+
+export interface StockFinancials {
+  currency: 'USD';
+  periods: FinancialPeriod[];
+  takeaway: string;
+  provenance: string;
+}
+
 export interface StockDetail {
   summary: StockSummary;
   metrics: Record<string, MetricObservation>;
@@ -214,6 +231,7 @@ export interface StockDetail {
     volume: string;
     structure: string;
     market: string;
+    financials: string;
   };
   movingAverages: MovingAverages;
   relativeStrength: {
@@ -223,6 +241,7 @@ export interface StockDetail {
     sectorEtf: string;
   };
   structure: PriceStructure;
+  financials: StockFinancials;
   sessions: number;
 }
 

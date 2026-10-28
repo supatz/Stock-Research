@@ -75,6 +75,14 @@ describe('mock snapshot stories', () => {
     expect(ba.detail.structure.drawdown ?? 0).toBeLessThan(-15);
   });
 
+  it('includes deterministic financial detail periods', () => {
+    const nvda = data.byTicker.get('NVDA')!.detail.financials;
+    expect(nvda.periods).toHaveLength(5);
+    expect(nvda.periods[0]?.period).toBe('FY2021');
+    expect(nvda.periods.at(-1)?.revenue).toBeGreaterThan(0);
+    expect(nvda.provenance).toMatch(/mock fundamentals/i);
+  });
+
   it('defines help for every observation and a known state label', () => {
     const states = new Set<string>();
     for (const stock of data.stocks) {
