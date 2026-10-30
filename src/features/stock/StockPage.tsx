@@ -121,7 +121,7 @@ export default function StockPage() {
       <section id="section.stock.chart" className="section-block" aria-labelledby="section.stock.chart-title">
         <SectionHeader
           referenceId="section.stock.chart"
-          description={`Embedded TradingView chart for ${summary.exchange}:${summary.ticker}.`}
+          description={`Embedded TradingView chart for ${summary.ticker}.`}
         />
         <div className="chart-slot tv-slot">
           <Suspense fallback={<PageSkeleton label="Loading TradingView" />}>

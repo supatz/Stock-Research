@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 declare global {
   interface Window {
@@ -8,19 +8,25 @@ declare global {
   }
 }
 
-function tradingViewSymbol(exchange: 'NYSE' | 'NASDAQ', ticker: string): string {
-  return `${exchange}:${ticker.toUpperCase()}`;
+function safeRemoveWidget(widget: { remove?: () => void } | null | undefined) {
+  if (!widget?.remove) return;
+  try {
+    widget.remove();
+  } catch {
+    // tv.js can throw if the iframe/host was already detached during route changes.
+  }
 }
 
 /** Public TradingView Advanced Chart widget for the active symbol. */
 export default function TradingViewPanel({
   ticker,
-  exchange,
+  exchange: _exchange,
 }: {
   ticker: string;
-  exchange: 'NYSE' | 'NASDAQ';
+  /** Kept for call-site compatibility; chart uses bare ticker only. */
+  exchange?: 'NYSE' | 'NASDAQ';
 }) {
-  const symbol = useMemo(() => tradingViewSymbol(exchange, ticker), [exchange, ticker]);
+  const symbol = ticker.toUpperCase();
   const hostId = useId().replace(/:/g, '');
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<{ remove?: () => void } | null>(null);
@@ -31,13 +37,17 @@ export default function TradingViewPanel({
     async function mount() {
       await loadTradingViewScript();
       if (cancelled || !window.TradingView || !containerRef.current) return;
-      widgetRef.current?.remove?.();
+
+      safeRemoveWidget(widgetRef.current);
+      widgetRef.current = null;
       containerRef.current.innerHTML = '';
+
       const mountNode = document.createElement('div');
       mountNode.id = `tv-widget-${hostId}`;
       mountNode.style.height = '100%';
       containerRef.current.appendChild(mountNode);
-      widgetRef.current = new window.TradingView.widget({
+
+      const widget = new window.TradingView.widget({
         autosize: true,
         symbol,
         interval: 'D',
@@ -55,12 +65,19 @@ export default function TradingViewPanel({
         calendar: false,
         container_id: mountNode.id,
       });
+
+      if (cancelled) {
+        safeRemoveWidget(widget);
+        if (containerRef.current) containerRef.current.innerHTML = '';
+        return;
+      }
+      widgetRef.current = widget;
     }
 
     void mount();
     return () => {
       cancelled = true;
-      widgetRef.current?.remove?.();
+      safeRemoveWidget(widgetRef.current);
       widgetRef.current = null;
       if (containerRef.current) containerRef.current.innerHTML = '';
     };
