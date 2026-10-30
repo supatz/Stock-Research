@@ -19,5 +19,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: false,
+    env: {
+      VITE_DATA_MODE: 'mock',
+    },
   },
 });
