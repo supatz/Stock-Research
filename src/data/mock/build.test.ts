@@ -77,9 +77,12 @@ describe('mock snapshot stories', () => {
 
   it('includes deterministic financial detail periods', () => {
     const nvda = data.byTicker.get('NVDA')!.detail.financials;
-    expect(nvda.periods).toHaveLength(5);
-    expect(nvda.periods[0]?.period).toBe('FY2021');
-    expect(nvda.periods.at(-1)?.revenue).toBeGreaterThan(0);
+    expect(nvda.annual).toHaveLength(6);
+    expect(nvda.quarterly.length).toBeGreaterThanOrEqual(12);
+    expect(nvda.annual[0]?.period).toBe('FY2021');
+    expect(nvda.annual.at(-1)?.period).toBe('FY2026');
+    expect(nvda.quarterly.at(-1)?.period).toBe('2026 Q3');
+    expect(nvda.annual.at(-1)?.operatingIncome).toBeGreaterThan(0);
     expect(nvda.provenance).toMatch(/mock fundamentals/i);
   });
 

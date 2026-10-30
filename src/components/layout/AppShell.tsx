@@ -92,7 +92,7 @@ export function AppShell() {
           </div>
         </div>
         <div className="freshness">
-          <span className="pill">Mock snapshot</span>
+          <span className="pill" title="V1 uses deterministic fixture data, not live market prints or filings">Fixture data</span>
           {manifest.status === 'ready' && manifest.data ? (
             <>
               <DataTimestamp asOf={manifest.data.marketDate} />

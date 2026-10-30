@@ -424,38 +424,63 @@ function hashTicker(ticker: string): number {
   return value;
 }
 
+function makeFinancialPeriod(
+  seed: StockSeed,
+  hash: number,
+  label: string,
+  frequency: 'annual' | 'quarterly',
+  age: number,
+  scale: number,
+): FinancialPeriod {
+  const growth = 1 + seed.growth / 100;
+  const baseRevenue = seed.marketCapB * (0.12 + (hash % 17) / 100);
+  const revenue = roundTo(baseRevenue * growth ** age * scale * (0.92 + ((hash + age * 7) % 11) / 100), 2) * 1e9;
+  const operatingMargin = roundTo(8 + (hash % 20) + age * 0.35 - (seed.kind === 'peak' ? 4 : 0) + (frequency === 'quarterly' ? ((hash + age) % 5) - 2 : 0) * 0.3, 1);
+  const grossMargin = roundTo(Math.min(78, operatingMargin + 18 + (hash % 9)), 1);
+  const netMargin = roundTo(operatingMargin - 2.4 + ((hash + age) % 5) * 0.2, 1);
+  const netIncome = roundTo(revenue * (netMargin / 100), 2);
+  const shares = Math.max(0.4, seed.marketCapB / Math.max(seed.price, 1));
+  const eps = roundTo(netIncome / (shares * 1e9), 2);
+  const freeCashFlow = roundTo(netIncome * (0.75 + ((hash + age * 3) % 8) / 20), 2);
+  const operatingIncome = roundTo(revenue * (operatingMargin / 100), 2);
+  return {
+    period: label,
+    frequency,
+    revenue,
+    netIncome,
+    eps,
+    grossMargin,
+    operatingMargin,
+    operatingIncome,
+    freeCashFlow,
+  };
+}
+
 function buildFinancials(seed: StockSeed): StockFinancials {
   const hash = hashTicker(seed.ticker);
-  const baseRevenue = seed.marketCapB * (0.12 + (hash % 17) / 100);
-  const periods: FinancialPeriod[] = [];
-  for (let year = 2021; year <= 2025; year += 1) {
-    const age = year - 2021;
-    const growth = 1 + seed.growth / 100;
-    const revenue = roundTo(baseRevenue * growth ** age * (0.92 + ((hash + age * 7) % 11) / 100), 2) * 1e9;
-    const operatingMargin = roundTo(8 + (hash % 20) + age * 0.4 - (seed.kind === 'peak' ? 4 : 0), 1);
-    const grossMargin = roundTo(Math.min(78, operatingMargin + 18 + (hash % 9)), 1);
-    const netMargin = roundTo(operatingMargin - 2.4 + ((hash + age) % 5) * 0.2, 1);
-    const netIncome = roundTo(revenue * (netMargin / 100), 2);
-    const shares = Math.max(0.4, seed.marketCapB / Math.max(seed.price, 1));
-    const eps = roundTo(netIncome / (shares * 1e9), 2);
-    const freeCashFlow = roundTo(netIncome * (0.75 + ((hash + age * 3) % 8) / 20), 2);
-    periods.push({
-      period: `FY${year}`,
-      revenue,
-      netIncome,
-      eps,
-      grossMargin,
-      operatingMargin,
-      freeCashFlow,
-    });
+  const annual: FinancialPeriod[] = [];
+  for (let year = 2021; year <= 2026; year += 1) {
+    annual.push(makeFinancialPeriod(seed, hash, `FY${year}`, 'annual', year - 2021, 1));
   }
-  const latest = periods[periods.length - 1]!;
-  const prior = periods[periods.length - 2]!;
+  const quarterly: FinancialPeriod[] = [];
+  let qAge = 0;
+  // Through 2026 Q3 to match the Oct 2026 snapshot market date.
+  for (let year = 2023; year <= 2026; year += 1) {
+    for (let quarter = 1; quarter <= 4; quarter += 1) {
+      if (year === 2026 && quarter > 3) break;
+      quarterly.push(makeFinancialPeriod(seed, hash, `${year} Q${quarter}`, 'quarterly', qAge / 4, 0.24 + ((hash + quarter) % 5) / 100));
+      qAge += 1;
+    }
+  }
+  const latest = annual[annual.length - 1]!;
+  const prior = annual[annual.length - 2]!;
   const revenueGrowth = prior.revenue ? ((latest.revenue / prior.revenue) - 1) * 100 : 0;
   return {
     currency: 'USD',
-    periods,
-    takeaway: `${seed.ticker} mock financials show FY${latest.period.slice(2)} revenue of ${formatDollars(latest.revenue)} with operating margin ${formatPercent(latest.operatingMargin, 1, false)}. Year-over-year revenue is ${formatPercent(revenueGrowth)}.`,
+    annual,
+    quarterly,
+    periods: annual,
+    takeaway: `${seed.ticker} financials show ${latest.period} revenue of ${formatDollars(latest.revenue)} with operating margin ${formatPercent(latest.operatingMargin, 1, false)}. Year-over-year revenue is ${formatPercent(revenueGrowth)}.`,
     provenance: 'Deterministic mock fundamentals for interface development — not reported company filings.',
   };
 }

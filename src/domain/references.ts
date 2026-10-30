@@ -19,6 +19,7 @@ export const REFERENCE_REGISTRY = {
   'section.screener.results': { name: 'Results', page: 'Screener' },
   'page.stock': { name: 'Stock Detail' },
   'section.stock.header': { name: 'Company Header', page: 'Stock Detail' },
+  'section.stock.research-brief': { name: 'Research Brief', page: 'Stock Detail' },
   'section.stock.snapshot': { name: 'Technical Snapshot', page: 'Stock Detail' },
   'section.stock.chart': { name: 'Main Chart', page: 'Stock Detail' },
   'section.stock.price-performance': { name: 'Price Performance', page: 'Stock Detail' },

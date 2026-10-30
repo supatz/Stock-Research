@@ -203,17 +203,23 @@ export interface DimensionState {
 
 export interface FinancialPeriod {
   period: string;
+  frequency: 'annual' | 'quarterly';
   revenue: number;
   netIncome: number;
   eps: number;
   grossMargin: number;
   operatingMargin: number;
+  /** Absolute operating profit = revenue × operatingMargin / 100 */
+  operatingIncome: number;
   freeCashFlow: number;
 }
 
 export interface StockFinancials {
   currency: 'USD';
-  periods: FinancialPeriod[];
+  annual: FinancialPeriod[];
+  quarterly: FinancialPeriod[];
+  /** @deprecated Prefer annual; kept for older call sites during transition. */
+  periods?: FinancialPeriod[];
   takeaway: string;
   provenance: string;
 }

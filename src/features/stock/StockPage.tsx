@@ -13,6 +13,7 @@ import { ReferenceTag } from '@/components/layout/ReferenceTag';
 import { FinancialsPanel } from '@/features/stock/FinancialsPanel';
 import { Range52WeekCard } from '@/features/stock/Range52WeekCard';
 import { RelativeStrengthMatrix } from '@/features/stock/RelativeStrengthMatrix';
+import { ResearchBriefPanel } from '@/features/stock/ResearchBriefPanel';
 import { TrendStack } from '@/features/stock/TrendStack';
 import { useAsync } from '@/lib/useAsync';
 
@@ -94,6 +95,8 @@ export default function StockPage() {
         {summary.qualityMessage ? <p className={`quality quality-${summary.quality}`} role="status">{summary.qualityMessage}</p> : null}
       </header>
 
+      <ResearchBriefPanel detail={detail} />
+
       <section id="section.stock.snapshot" className="section-block" aria-labelledby="section.stock.snapshot-title">
         <SectionHeader referenceId="section.stock.snapshot" description="Six separate readings. They do not collapse into a score." />
         <div className="ribbon">
@@ -117,7 +120,7 @@ export default function StockPage() {
       <section id="section.stock.chart" className="section-block" aria-labelledby="section.stock.chart-title">
         <SectionHeader
           referenceId="section.stock.chart"
-          description={`TradingView chart for ${summary.exchange}:${summary.ticker}. Use My TradingView for your saved drawings, or Embedded chart for an in-page widget.`}
+          description={`Embedded TradingView chart for ${summary.exchange}:${summary.ticker}.`}
         />
         <div className="chart-slot tv-slot">
           <Suspense fallback={<PageSkeleton label="Loading TradingView" />}>
@@ -140,10 +143,7 @@ export default function StockPage() {
       </section>
 
       <section id="section.stock.financials" className="section-block" aria-labelledby="section.stock.financials-title">
-        <SectionHeader
-          referenceId="section.stock.financials"
-          description={detail.takeaways.financials}
-        />
+        <SectionHeader referenceId="section.stock.financials" />
         <FinancialsPanel financials={detail.financials} />
       </section>
 
