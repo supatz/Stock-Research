@@ -309,6 +309,7 @@ h2 { font-size: 1.7rem; }
   overflow-x: auto;
   padding-bottom: 0.2rem;
 }
+.ribbon-7 { grid-template-columns: repeat(7, minmax(118px, 1fr)); }
 .ribbon-card {
   text-align: left;
   background: var(--bg-elevated);
@@ -578,9 +579,39 @@ h2 { font-size: 1.7rem; }
 .fin-bar.down { fill: color-mix(in srgb, var(--negative) 78%, #5a1010); }
 .fin-bar-group.is-selected .fin-bar { stroke: var(--accent); stroke-width: 2; }
 .fin-line { stroke: var(--info); stroke-width: 2.4; }
+.fin-line.sector { stroke: var(--caution); stroke-dasharray: 5 4; stroke-width: 2; }
 .fin-line-dot { fill: var(--info); stroke: var(--bg-elevated); stroke-width: 2; }
+.fin-line-dot.sector { fill: var(--caution); }
 .fin-bar-swatch { background: var(--positive); border-color: var(--positive); }
 .fin-line-swatch { background: var(--info); border-color: var(--info); }
+.fin-sector-swatch { background: var(--caution); border-color: var(--caution); }
+.year-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+.year-range select {
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+}
+.key-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.7rem;
+}
+.key-stat-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.35rem;
+  box-shadow: var(--shadow);
+}
 .bar-value, .line-value { fill: var(--ink); font-size: 10px; font-family: var(--mono); font-weight: 650; }
 .bar-value.in-bar {
   fill: #f4fff8;

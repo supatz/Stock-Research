@@ -5,10 +5,24 @@ The site has two independent data modes:
 - `mock`: deterministic TypeScript fixtures for UI development and tests.
 - `snapshot`: generated, versioned JSON under `public/data/v1`.
 
-The current Python pipeline writes honest bootstrap metadata only. It does not
-fabricate market observations. Live OHLCV acquisition, FinanceToolkit
-calculations, peer comparisons, and validation gates are the next pipeline
-phase.
+**Universe:** S&P 500 constituents in `pipeline/data/universe/sp500.json`.  
+Prices/technicals refresh as often as you run the pipeline.  
+**Edgar financials** are cached under `pipeline/cache/edgar/` and reused until
+`EDGAR_MAX_AGE_DAYS` (default **30**). Daily/weekly price runs do not re-hit SEC
+unless the cache is stale or you pass `--force-edgar`.
+
+This personal unpaid stack is **manual refresh only**.
+
+## SEC identity (no signup)
+
+Put your email in local `.env` (gitignored). SEC fair-access only needs a
+User-Agent identity string — there is **no account to create**:
+
+```bash
+SEC_IDENTITY_EMAIL=you@example.com
+# or: SEC_IDENTITY_EMAIL=Your Name you@example.com
+EDGAR_MAX_AGE_DAYS=30
+```
 
 ## One-command workflow
 
@@ -19,49 +33,65 @@ phase.
 ./scripts/refresh.sh --both --message "Refresh EOD snapshot"
 ```
 
-With no arguments, an interactive terminal shows a menu. A non-interactive run
-always defaults to dataset-only, so scheduled jobs cannot commit or push by
-accident. Logs are written to `logs/` and ignored by Git.
+`refresh.command` opens the same menu. Choose **3 (Dataset + Git push)** to
+update [the Netlify site](https://us-stock-market.netlify.app/market) after a
+push. Logs go to `logs/`.
 
-On macOS, `scripts/refresh.command` opens the same menu when double-clicked.
-`scripts/serve.command` builds the site if needed and serves `dist/` at
-<http://127.0.0.1:8765/>.
+`scripts/refresh-universe.command` only refreshes S&P 500 membership
+(`pipeline/data/universe/sp500.json`) from Wikipedia. Use it when constituents
+change; then run `refresh.command` → **3** for prices + publish.
 
-## Credentials
+## Live snapshot refresh
 
-Never put credentials in this repository.
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e 'pipeline[live,dev]'
 
-- GitHub HTTPS credentials belong in macOS Keychain or a credential manager.
-- `FMP_API_KEY` is a build-time/server-side environment variable.
-- `NETLIFY_BUILD_HOOK` is a GitHub Actions secret.
-- Do not prefix secrets with `VITE_`; Vite exposes those values to browsers.
+# 1) Refresh the S&P 500 membership list (when constituents change)
+python pipeline/run.py --universe-only
 
-Copy `.env.example` to `.env` for local values. `.env` is ignored.
+# 2) Daily / weekly prices for the universe file (Edgar uses 30-day cache)
+python pipeline/run.py
+
+# Smoke (first N names)
+python pipeline/run.py --limit 8
+
+# Force SEC refetch even if cache is fresh
+python pipeline/run.py --force-edgar
+
+# Prices only (no Edgar network / cache write)
+python pipeline/run.py --skip-edgar
+```
+
+Outputs: `public/data/v1/` (`manifest.json`, `market/overview.json`,
+`universe.json`, `screener.json`, `quality.json`, and per-ticker
+`stocks/{TICKER}/{summary,technicals,history}.json`).
+
+```bash
+# .env
+VITE_DATA_MODE=snapshot
+npm run dev
+```
+
+## How prices vs Edgar interact
+
+| Run | Yahoo OHLCV | Edgar SEC facts |
+|---|---|---|
+| Normal `python pipeline/run.py` | Always refetch | Use cache if &lt; 30 days old; else fetch + cache |
+| `--skip-edgar` | Always refetch | Skip (empty financials unless old cache exists and identity missing path uses cache) |
+| `--force-edgar` | Always refetch | Ignore age; refetch + rewrite cache |
+| `--universe-only` | No | No — only rewrites `sp500.json` |
+
+Membership changes are infrequent. Refresh the universe file when you hear of
+S&P adds/drops, or periodically (e.g. monthly) with `--universe-only` /
+`--refresh-universe`.
 
 ## Netlify
 
-`netlify.toml` publishes `dist/` after generating snapshot metadata, running
-tests, and building the frontend. Once the Netlify site exists:
-
-1. Connect it to `supatz/Stock-Research`.
-2. Add build-only market-data variables in Netlify.
-3. Create a Netlify build hook.
-4. Save that URL in the GitHub repository secret `NETLIFY_BUILD_HOOK`.
-
-The scheduled Netlify trigger workflow is checked in as a template at
-`docs/github-workflows/trigger-netlify.yml` because GitHub requires a PAT with
-the `workflow` scope before that file can live under `.github/workflows/`.
-
-To enable it:
-
-1. Update the personal GitHub PAT (or SSH auth) so it can write workflow files.
-2. Copy the template into `.github/workflows/trigger-netlify.yml`.
-3. Commit and push.
-4. Add the repository secret `NETLIFY_BUILD_HOOK`.
-
-The weekday schedule is 23:30 UTC. That is 7:30 PM New York during daylight
-time and 6:30 PM in winter. The live pipeline must inspect the exchange
-calendar/latest market date rather than assuming every weekday is a trading day.
+`netlify.toml` runs tests and builds with `VITE_DATA_MODE=snapshot`. It does
+**not** re-fetch market data. Commit refreshed `public/data/v1/**` after a local
+dataset run (`./scripts/refresh.sh --both`).
 
 ## New-computer recovery
 
@@ -69,16 +99,10 @@ calendar/latest market date rather than assuming every weekday is a trading day.
 git clone https://github.com/supatz/Stock-Research.git
 cd Stock-Research
 npm install
+python3 -m venv .venv && . .venv/bin/activate
+python -m pip install -e 'pipeline[live,dev]'
+cp .env.example .env   # set SEC_IDENTITY_EMAIL
+python pipeline/run.py --universe-only
+python pipeline/run.py --limit 8
 npm run dev
 ```
-
-Install Python live-pipeline dependencies only when that phase is enabled:
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -e 'pipeline[live,dev]'
-```
-
-Credentials must be recreated from the provider dashboards or password manager;
-they are intentionally absent from Git.

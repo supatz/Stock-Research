@@ -11,8 +11,13 @@ dependencies = []
 
 [project.optional-dependencies]
 live = [
+  "beautifulsoup4",
+  "edgartools",
   "financedatabase",
   "financetoolkit",
+  "hishel>=0.0.24,<1",
+  "html5lib",
+  "lxml",
   "numpy",
   "pandas",
   "pyarrow",
@@ -23,6 +28,9 @@ dev = ["pytest", "ruff"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/stock_pipeline"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

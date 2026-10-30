@@ -187,7 +187,7 @@ export interface PriceStructure {
 }
 
 export interface DimensionState {
-  id: 'trend' | 'momentum' | 'relative-strength' | 'volatility' | 'volume' | 'market';
+  id: 'trend' | 'momentum' | 'relative-strength' | 'volatility' | 'volume' | 'vwap' | 'market';
   label: string;
   state: string;
   shortText: string;
@@ -198,15 +198,37 @@ export interface DimensionState {
     | 'section.stock.relative-strength'
     | 'section.stock.volatility'
     | 'section.stock.volume'
+    | 'section.stock.key-statistics'
     | 'section.stock.market-context';
+}
+
+export type ValuationBand = 'low' | 'average' | 'high';
+
+export interface KeyStatistics {
+  pe: number | null;
+  peBand: ValuationBand | null;
+  peAverage: number | null;
+  sectorPe: number | null;
+  pb: number | null;
+  pbBand: ValuationBand | null;
+  pbAverage: number | null;
+  beta: number | null;
+  marketCap: number;
+  week52High: number | null;
+  week52Low: number | null;
+  vwap: number | null;
+  vwapVsPricePct: number | null;
 }
 
 export interface FinancialPeriod {
   period: string;
+  year: number;
   frequency: 'annual' | 'quarterly';
   revenue: number;
   netIncome: number;
   eps: number;
+  pe: number | null;
+  sectorPe: number | null;
   grossMargin: number;
   operatingMargin: number;
   /** Absolute operating profit = revenue × operatingMargin / 100 */
@@ -248,6 +270,7 @@ export interface StockDetail {
   };
   structure: PriceStructure;
   financials: StockFinancials;
+  keyStatistics: KeyStatistics;
   sessions: number;
 }
 

@@ -92,7 +92,15 @@ export function AppShell() {
           </div>
         </div>
         <div className="freshness">
-          <span className="pill" title="V1 uses deterministic fixture data, not live market prints or filings">Fixture data</span>
+          {manifest.status === 'ready' && manifest.data?.mode === 'snapshot' ? (
+            <span className="pill" title={manifest.data.note || 'Daily EOD snapshot from the unpaid data pipeline'}>
+              EOD snapshot
+            </span>
+          ) : (
+            <span className="pill" title="Deterministic fixture data, not live market prints or filings">
+              Fixture data
+            </span>
+          )}
           {manifest.status === 'ready' && manifest.data ? (
             <>
               <DataTimestamp asOf={manifest.data.marketDate} />
@@ -107,8 +115,8 @@ export function AppShell() {
         <Outlet />
       </main>
       <footer className="site-footer">
-        <p>{PROVENANCE_NOTE}</p>
-        <p>Peer sample sizes illustrate cohort rules and can be larger than the 36 names drawn in the screener. There is no combined buy score.</p>
+        <p>{manifest.status === 'ready' && manifest.data?.note ? manifest.data.note : PROVENANCE_NOTE}</p>
+        <p>There is no combined buy score. Readings are descriptive context, not investment advice.</p>
       </footer>
     </div>
   );

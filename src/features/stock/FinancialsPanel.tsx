@@ -24,10 +24,25 @@ export function FinancialsPanel({ financials }: { financials: StockFinancials })
     period: FinancialPeriod;
   } | null>(null);
 
-  const periods = frequency === 'annual' ? financials.annual : financials.quarterly;
-  const activeMetric = METRIC_OPTIONS.find((item) => item.id === metric)!;
+  const sourcePeriods = frequency === 'annual' ? financials.annual : financials.quarterly;
+  const yearOptions = useMemo(
+    () => [...new Set(sourcePeriods.map((period) => period.year))].sort((a, b) => a - b),
+    [sourcePeriods],
+  );
+  const defaultStart = yearOptions[Math.max(0, yearOptions.length - 10)] ?? yearOptions[0] ?? 2017;
+  const defaultEnd = yearOptions[yearOptions.length - 1] ?? 2026;
+  const [startYear, setStartYear] = useState(defaultStart);
+  const [endYear, setEndYear] = useState(defaultEnd);
 
+  const periods = useMemo(() => {
+    const from = Math.min(startYear, endYear);
+    const to = Math.max(startYear, endYear);
+    return sourcePeriods.filter((period) => period.year >= from && period.year <= to);
+  }, [endYear, sourcePeriods, startYear]);
+
+  const activeMetric = METRIC_OPTIONS.find((item) => item.id === metric)!;
   const growthLabel = frequency === 'annual' ? 'YoY' : 'QoQ';
+  const peMode = metric === 'eps';
 
   return (
     <div className="financials-panel">
@@ -55,6 +70,26 @@ export function FinancialsPanel({ financials }: { financials: StockFinancials })
             ))}
           </div>
         ) : null}
+        <label className="year-range">
+          <span>From</span>
+          <select
+            aria-label="Start year"
+            value={Math.min(startYear, endYear)}
+            onChange={(event) => setStartYear(Number(event.target.value))}
+          >
+            {yearOptions.map((year) => <option key={`start-${year}`} value={year}>{year}</option>)}
+          </select>
+        </label>
+        <label className="year-range">
+          <span>To</span>
+          <select
+            aria-label="End year"
+            value={Math.max(startYear, endYear)}
+            onChange={(event) => setEndYear(Number(event.target.value))}
+          >
+            {yearOptions.map((year) => <option key={`end-${year}`} value={year}>{year}</option>)}
+          </select>
+        </label>
       </div>
 
       {view === 'combo' ? (
@@ -75,8 +110,17 @@ export function FinancialsPanel({ financials }: { financials: StockFinancials })
         <div className="fin-tooltip" style={{ left: hover.x, top: hover.y }} role="tooltip">
           <p className="fin-tooltip-period">{hover.period.period}</p>
           <p><strong>{activeMetric.label}:</strong> {metric === 'eps' ? formatNumber(hover.period[metric], 2) : formatDollars(hover.period[metric])}</p>
-          <p><strong>Op. margin:</strong> {formatPercent(hover.period.operatingMargin, 1, false)}</p>
-          <p><strong>Op. profit:</strong> {formatDollars(hover.period.operatingIncome)}</p>
+          {peMode ? (
+            <>
+              <p><strong>P/E:</strong> {hover.period.pe == null ? '—' : formatNumber(hover.period.pe, 1)}</p>
+              <p><strong>Sector P/E:</strong> {hover.period.sectorPe == null ? '—' : formatNumber(hover.period.sectorPe, 1)}</p>
+            </>
+          ) : (
+            <>
+              <p><strong>Op. margin:</strong> {formatPercent(hover.period.operatingMargin, 1, false)}</p>
+              <p><strong>Op. profit:</strong> {formatDollars(hover.period.operatingIncome)}</p>
+            </>
+          )}
           {(() => {
             const index = periods.findIndex((item) => item.period === hover.period.period);
             const prior = index > 0 ? periods[index - 1] : undefined;
@@ -188,6 +232,8 @@ function PeriodBreakdown({
         <div><dt>Revenue</dt><dd className="num">{formatDollars(period.revenue)}</dd></div>
         <div><dt>Net income</dt><dd className={`num ${signedClass(period.netIncome)}`}>{formatDollars(period.netIncome)}</dd></div>
         <div><dt>EPS</dt><dd className={`num ${signedClass(period.eps)}`}>{formatNumber(period.eps, 2)}</dd></div>
+        <div><dt>P/E</dt><dd className="num">{period.pe == null ? '—' : formatNumber(period.pe, 1)}</dd></div>
+        <div><dt>Sector P/E</dt><dd className="num">{period.sectorPe == null ? '—' : formatNumber(period.sectorPe, 1)}</dd></div>
         <div><dt>Gross margin</dt><dd className="num">{formatPercent(period.grossMargin, 1, false)}</dd></div>
         <div><dt>Operating margin</dt><dd className={`num ${signedClass(period.operatingMargin)}`}>{formatPercent(period.operatingMargin, 1, false)}</dd></div>
         <div><dt>Operating profit</dt><dd className={`num ${signedClass(period.operatingIncome)}`}>{formatDollars(period.operatingIncome)}</dd></div>
@@ -251,6 +297,8 @@ function FinancialComboChart({
   onHover: (value: { x: number; y: number; period: FinancialPeriod } | null) => void;
   onSelect: (period: FinancialPeriod) => void;
 }) {
+  const peMode = metric === 'eps';
+
   const geometry = useMemo(() => {
     const width = 820;
     const height = 340;
@@ -258,19 +306,20 @@ function FinancialComboChart({
     const innerW = width - pad.left - pad.right;
     const innerH = height - pad.top - pad.bottom;
     const values = periods.map((period) => period[metric]);
-    const margins = periods.map((period) => period.operatingMargin);
+    const rightValues = peMode
+      ? periods.flatMap((period) => [period.pe ?? 0, period.sectorPe ?? 0])
+      : periods.map((period) => period.operatingMargin);
     const minBar = Math.min(0, ...values);
     const maxBar = Math.max(...values, 0);
     const barSpan = maxBar - minBar || 1;
-    const minMargin = Math.min(...margins, 0);
-    // Extra headroom keeps margin labels away from the top axis title.
-    const maxMargin = Math.max(...margins, 5) * 1.18;
-    const marginSpan = maxMargin - minMargin || 1;
+    const minRight = peMode ? 0 : Math.min(...rightValues, 0);
+    const maxRight = Math.max(...rightValues, peMode ? 5 : 5) * 1.18;
+    const rightSpan = maxRight - minRight || 1;
     const slot = innerW / Math.max(periods.length, 1);
-    const barWidth = Math.min(periods.length > 8 ? 28 : 42, slot * 0.55);
+    const barWidth = Math.min(periods.length > 8 ? 22 : 42, slot * 0.5);
 
     const yBar = (value: number) => pad.top + ((maxBar - value) / barSpan) * innerH;
-    const yMargin = (value: number) => pad.top + ((maxMargin - value) / marginSpan) * innerH;
+    const yRight = (value: number) => pad.top + ((maxRight - value) / rightSpan) * innerH;
 
     const bars = periods.map((period, index) => {
       const value = period[metric];
@@ -278,33 +327,38 @@ function FinancialComboChart({
       const y0 = yBar(0);
       const y1 = yBar(value);
       const top = Math.min(y0, y1);
-      const height = Math.max(2, Math.abs(y1 - y0));
+      const heightPx = Math.max(2, Math.abs(y1 - y0));
       return {
         period,
         value,
         x,
         width: barWidth,
         y: top,
-        height,
-        // Center label inside the bar so it never collides with margin % markers.
-        labelY: top + height / 2 + 4,
+        height: heightPx,
+        labelY: top + heightPx / 2 + 4,
         positive: value >= 0,
         cx: x + barWidth / 2,
         growth: index > 0 ? growthRate(periods[index - 1]?.[metric] as number | undefined, value) : null,
       };
     });
 
-    const linePoints = periods.map((period, index) => ({
+    const primaryLine = periods.map((period, index) => ({
       period,
       x: pad.left + slot * index + slot / 2,
-      y: yMargin(period.operatingMargin),
-      margin: period.operatingMargin,
-      absolute: period.operatingIncome,
-      // Place % labels to the right of the marker, clear of bar-center values.
-      labelX: pad.left + slot * index + slot / 2 + Math.max(14, barWidth * 0.55),
+      y: yRight(peMode ? (period.pe ?? 0) : period.operatingMargin),
+      value: peMode ? period.pe : period.operatingMargin,
+      labelX: pad.left + slot * index + slot / 2 + Math.max(12, barWidth * 0.45),
     }));
+    const sectorLine = peMode
+      ? periods.map((period, index) => ({
+        period,
+        x: pad.left + slot * index + slot / 2,
+        y: yRight(period.sectorPe ?? 0),
+        value: period.sectorPe,
+      }))
+      : [];
 
-    const linePath = linePoints
+    const pathFor = (points: Array<{ x: number; y: number }>) => points
       .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
       .join(' ');
 
@@ -312,9 +366,9 @@ function FinancialComboChart({
       value,
       y: yBar(value),
     }));
-    const rightTicks = [maxMargin, (maxMargin + minMargin) / 2, minMargin].map((value) => ({
+    const rightTicks = [maxRight, (maxRight + minRight) / 2, minRight].map((value) => ({
       value,
-      y: yMargin(value),
+      y: yRight(value),
     }));
 
     return {
@@ -322,15 +376,19 @@ function FinancialComboChart({
       height,
       pad,
       bars,
-      linePoints,
-      linePath,
+      primaryLine,
+      sectorLine,
+      primaryPath: pathFor(primaryLine),
+      sectorPath: pathFor(sectorLine),
       leftTicks,
       rightTicks,
       zeroY: yBar(0),
+      peMode,
     };
-  }, [metric, periods]);
+  }, [metric, peMode, periods]);
 
   const formatAxis = (value: number) => (metric === 'eps' ? formatNumber(value, 2) : formatDollars(value));
+  const formatRight = (value: number) => (peMode ? formatNumber(value, 1) : formatPercent(value, 1, false));
 
   return (
     <figure className="financial-chart-frame">
@@ -338,7 +396,7 @@ function FinancialComboChart({
         className="financial-chart"
         viewBox={`0 0 ${geometry.width} ${geometry.height}`}
         role="img"
-        aria-label={`${metricLabel} bars with operating-margin percent line`}
+        aria-label={peMode ? `${metricLabel} bars with P/E and sector P/E lines` : `${metricLabel} bars with operating-margin percent line`}
         onMouseLeave={() => onHover(null)}
       >
         {geometry.leftTicks.map((tick) => (
@@ -349,11 +407,13 @@ function FinancialComboChart({
         ))}
         {geometry.rightTicks.map((tick) => (
           <text key={`r-${tick.value}`} className="axis-label axis-right" x={geometry.width - geometry.pad.right + 8} y={tick.y + 3} textAnchor="start">
-            {formatPercent(tick.value, 1, false)}
+            {formatRight(tick.value)}
           </text>
         ))}
         <text className="axis-title" x={geometry.pad.left} y={14}>{metricLabel} ({currency})</text>
-        <text className="axis-title axis-right" x={geometry.width - geometry.pad.right} y={14} textAnchor="end">Op. margin %</text>
+        <text className="axis-title axis-right" x={geometry.width - geometry.pad.right} y={14} textAnchor="end">
+          {peMode ? 'P/E multiple' : 'Op. margin %'}
+        </text>
 
         <line className="grid-line strong" x1={geometry.pad.left} x2={geometry.width - geometry.pad.right} y1={geometry.zeroY} y2={geometry.zeroY} />
 
@@ -380,9 +440,11 @@ function FinancialComboChart({
               height={bar.height}
               rx={4}
             />
-            <text className="bar-value in-bar" x={bar.cx} y={bar.labelY} textAnchor="middle">
-              {formatAxis(bar.value)}
-            </text>
+            {bar.height > 28 ? (
+              <text className="bar-value in-bar" x={bar.cx} y={bar.labelY} textAnchor="middle">
+                {formatAxis(bar.value)}
+              </text>
+            ) : null}
             <text className="axis-label" x={bar.cx} y={geometry.height - 24} textAnchor="middle">
               {bar.period.period.replace('FY', '').replace(' 20', " '")}
             </text>
@@ -394,8 +456,9 @@ function FinancialComboChart({
           </g>
         ))}
 
-        <path className="fin-line" d={geometry.linePath} fill="none" />
-        {geometry.linePoints.map((point) => (
+        <path className="fin-line" d={geometry.primaryPath} fill="none" />
+        {geometry.sectorPath ? <path className="fin-line sector" d={geometry.sectorPath} fill="none" /> : null}
+        {geometry.primaryLine.map((point) => (
           <g
             key={`line-${point.period.period}`}
             style={{ cursor: 'pointer' }}
@@ -410,19 +473,27 @@ function FinancialComboChart({
             onClick={() => onSelect(point.period)}
           >
             <circle className="fin-line-dot" cx={point.x} cy={point.y} r={4} />
-            <text className="line-value" x={point.labelX} y={point.y + 4} textAnchor="start">
-              {formatPercent(point.margin, 1, false)}
-            </text>
+            {point.value != null ? (
+              <text className="line-value" x={point.labelX} y={point.y + 4} textAnchor="start">
+                {formatRight(point.value)}
+              </text>
+            ) : null}
           </g>
+        ))}
+        {geometry.sectorLine.map((point) => (
+          <circle key={`sector-${point.period.period}`} className="fin-line-dot sector" cx={point.x} cy={point.y} r={3.5} />
         ))}
       </svg>
       <figcaption className="muted fin-caption">
-        Bars use the left scale. Operating margin (%) uses the right scale; hover also shows absolute operating profit.
-        Growth under each period is YoY for annual and QoQ for quarterly. Click a bar, point, or table row for period detail.
+        {peMode
+          ? 'Bars use the left scale. P/E and sector P/E use the right scale.'
+          : 'Bars use the left scale. Operating margin (%) uses the right scale; hover also shows absolute operating profit.'}
+        {' '}Growth under each period is YoY for annual and QoQ for quarterly. Click a bar, point, or table row for period detail.
       </figcaption>
       <ul className="chart-legend">
         <li><span className="swatch fin-bar-swatch" aria-hidden="true" /> {metricLabel}</li>
-        <li><span className="swatch fin-line-swatch" aria-hidden="true" /> Operating margin %</li>
+        <li><span className="swatch fin-line-swatch" aria-hidden="true" /> {peMode ? 'P/E' : 'Operating margin %'}</li>
+        {peMode ? <li><span className="swatch fin-sector-swatch" aria-hidden="true" /> Sector P/E</li> : null}
       </ul>
     </figure>
   );

@@ -17,5 +17,5 @@ __pycache__/
 pipeline/cache/
 logs/*.log
 
-# Generated snapshots are reproducible. Keep only checked-in samples/fixtures.
-public/data/v1/stocks/
+# Snapshot JSON under public/data/v1 is produced by scripts/refresh.sh --dataset
+# and should be committed when publishing so Netlify can serve snapshot mode.

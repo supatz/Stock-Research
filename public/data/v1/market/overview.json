@@ -1,0 +1,318 @@
+{
+  "schemaVersion": "1.0.0",
+  "marketDate": "2026-10-30",
+  "generatedAt": "2026-10-30T14:00:09.314064Z",
+  "pipelineVersion": "4a07436",
+  "dataSources": [
+    "FinanceToolkit|pandas",
+    "edgartools",
+    "internal:comparisons:v1",
+    "sp500:file",
+    "yfinance"
+  ],
+  "payload": {
+    "asOf": "2026-10-30",
+    "generatedAt": "2026-10-30T14:00:09.314064Z",
+    "regime": {
+      "state": "REGIME_MIXED",
+      "label": "Mixed / range-bound",
+      "summary": "Index trend and breadth do not agree on one regime. QQQ is above its 200-day average."
+    },
+    "metrics": [
+      {
+        "metricId": "market.regime",
+        "asOf": "2026-10-30",
+        "rawValue": "REGIME_MIXED",
+        "displayValue": "Mixed / range-bound",
+        "unit": null,
+        "interpretation": {
+          "mode": "CATEGORICAL",
+          "state": "REGIME_MIXED",
+          "shortText": "Index trend and breadth do not agree on one regime. QQQ is above its 200-day average."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      },
+      {
+        "metricId": "market.spy-vs-50dma",
+        "asOf": "2026-10-30",
+        "rawValue": -0.84,
+        "displayValue": "-0.8%",
+        "unit": "%",
+        "interpretation": {
+          "mode": "CATEGORICAL",
+          "state": "PRICE_BELOW",
+          "shortText": "Price is below this moving average."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      },
+      {
+        "metricId": "market.spy-vs-200dma",
+        "asOf": "2026-10-30",
+        "rawValue": 4.74,
+        "displayValue": "+4.7%",
+        "unit": "%",
+        "interpretation": {
+          "mode": "CATEGORICAL",
+          "state": "PRICE_ABOVE",
+          "shortText": "Price is above this moving average."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      },
+      {
+        "metricId": "market.qqq-vs-200dma",
+        "asOf": "2026-10-30",
+        "rawValue": 2.85,
+        "displayValue": "+2.9%",
+        "unit": "%",
+        "interpretation": {
+          "mode": "CATEGORICAL",
+          "state": "PRICE_ABOVE",
+          "shortText": "Price is above this moving average."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      },
+      {
+        "metricId": "market.breadth-50dma",
+        "asOf": "2026-10-30",
+        "rawValue": 64.1,
+        "displayValue": "64% \u00b7 322 of 502",
+        "unit": "%",
+        "interpretation": {
+          "mode": "CATEGORICAL",
+          "state": "BREADTH_SELECTIVE",
+          "shortText": "Participation is selective rather than broad."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      },
+      {
+        "metricId": "market.breadth-200dma",
+        "asOf": "2026-10-30",
+        "rawValue": 63.2,
+        "displayValue": "63% \u00b7 316 of 500",
+        "unit": "%",
+        "interpretation": {
+          "mode": "CATEGORICAL",
+          "state": "BREADTH_SELECTIVE",
+          "shortText": "Participation is selective rather than broad."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      },
+      {
+        "metricId": "market.vix",
+        "asOf": "2026-10-30",
+        "rawValue": 20.23,
+        "displayValue": "20.2",
+        "unit": null,
+        "interpretation": {
+          "mode": "EXTREME_CONTEXT",
+          "state": "VIX_ELEVATED",
+          "shortText": "VIX is elevated. Higher implied volatility is a risk context."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      },
+      {
+        "metricId": "market.highs-20d",
+        "asOf": "2026-10-30",
+        "rawValue": 110,
+        "displayValue": "110",
+        "unit": null,
+        "interpretation": {
+          "mode": "CATEGORICAL",
+          "state": "NEWHIGH_LEAD",
+          "shortText": "New 20-day highs outnumber new 20-day lows."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      },
+      {
+        "metricId": "market.lows-20d",
+        "asOf": "2026-10-30",
+        "rawValue": 44,
+        "displayValue": "44",
+        "unit": null,
+        "interpretation": {
+          "mode": "CATEGORICAL",
+          "state": "NEWHIGH_LEAD",
+          "shortText": "New 20-day highs outnumber new 20-day lows."
+        },
+        "dataQuality": {
+          "status": "good"
+        },
+        "provenance": "pipeline:v1"
+      }
+    ],
+    "indices": [
+      {
+        "ticker": "SPY",
+        "name": "S&P 500",
+        "price": 760.45,
+        "changePct": -1.1581,
+        "vs50": -0.8371,
+        "vs200": 4.744,
+        "trendState": "MIXED"
+      },
+      {
+        "ticker": "QQQ",
+        "name": "Nasdaq 100",
+        "price": 697.76,
+        "changePct": -2.4576,
+        "vs50": -3.7372,
+        "vs200": 2.852,
+        "trendState": "MIXED"
+      },
+      {
+        "ticker": "DIA",
+        "name": "Dow Jones",
+        "price": 520.55,
+        "changePct": -0.417,
+        "vs50": -0.1254,
+        "vs200": 3.4261,
+        "trendState": "MIXED"
+      },
+      {
+        "ticker": "IWM",
+        "name": "Russell 2000",
+        "price": 281.0,
+        "changePct": -1.0598,
+        "vs50": -1.0782,
+        "vs200": 1.1863,
+        "trendState": "MIXED"
+      }
+    ],
+    "sectors": [
+      {
+        "ticker": "XLE",
+        "sectorId": "energy",
+        "name": "Energy",
+        "changePct": 1.8338,
+        "return1m": 11.5949,
+        "rs3mVsSpy": 19.1081,
+        "trendState": "STRONG_UPTREND"
+      },
+      {
+        "ticker": "XLV",
+        "sectorId": "health-care",
+        "name": "Health Care",
+        "changePct": 1.3856,
+        "return1m": 12.2684,
+        "rs3mVsSpy": 14.8326,
+        "trendState": "STRONG_UPTREND"
+      },
+      {
+        "ticker": "XLP",
+        "sectorId": "consumer-staples",
+        "name": "Consumer Staples",
+        "changePct": 1.3495,
+        "return1m": 11.2536,
+        "rs3mVsSpy": 5.3911,
+        "trendState": "STRONG_UPTREND"
+      },
+      {
+        "ticker": "XLB",
+        "sectorId": "materials",
+        "name": "Materials",
+        "changePct": -0.3427,
+        "return1m": 7.8492,
+        "rs3mVsSpy": 2.4831,
+        "trendState": "UPTREND"
+      },
+      {
+        "ticker": "XLK",
+        "sectorId": "information-technology",
+        "name": "Technology",
+        "changePct": -3.6187,
+        "return1m": -8.038,
+        "rs3mVsSpy": 1.6768,
+        "trendState": "MIXED"
+      },
+      {
+        "ticker": "XLF",
+        "sectorId": "financials",
+        "name": "Financials",
+        "changePct": -0.5708,
+        "return1m": 5.9016,
+        "rs3mVsSpy": -1.6002,
+        "trendState": "UPTREND"
+      },
+      {
+        "ticker": "XLU",
+        "sectorId": "utilities",
+        "name": "Utilities",
+        "changePct": 0.6954,
+        "return1m": 9.4758,
+        "rs3mVsSpy": -1.97,
+        "trendState": "MIXED"
+      },
+      {
+        "ticker": "XLY",
+        "sectorId": "consumer-discretionary",
+        "name": "Consumer Discretionary",
+        "changePct": -0.8003,
+        "return1m": 5.937,
+        "rs3mVsSpy": -2.8885,
+        "trendState": "MIXED"
+      },
+      {
+        "ticker": "XLRE",
+        "sectorId": "real-estate",
+        "name": "Real Estate",
+        "changePct": -0.0232,
+        "return1m": 5.826,
+        "rs3mVsSpy": -4.5286,
+        "trendState": "MIXED"
+      },
+      {
+        "ticker": "XLI",
+        "sectorId": "industrials",
+        "name": "Industrials",
+        "changePct": -0.6113,
+        "return1m": 0.2668,
+        "rs3mVsSpy": -8.0498,
+        "trendState": "DOWNTREND"
+      },
+      {
+        "ticker": "XLC",
+        "sectorId": "communication-services",
+        "name": "Communication Services",
+        "changePct": -0.4945,
+        "return1m": -8.3959,
+        "rs3mVsSpy": -9.8658,
+        "trendState": "STRONG_DOWNTREND"
+      }
+    ],
+    "breadth": {
+      "above50": 64.14342629482071,
+      "above50Count": 322,
+      "above50Sample": 502,
+      "above200": 63.2,
+      "above200Count": 316,
+      "above200Sample": 500,
+      "highs20": 110,
+      "lows20": 44,
+      "illustrated": 502
+    }
+  }
+}

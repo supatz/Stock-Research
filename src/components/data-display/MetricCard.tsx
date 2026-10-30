@@ -19,10 +19,12 @@ export function MetricCard({
   definition,
   observation,
   variant = 'default',
+  showAsOf = true,
 }: {
   definition: MetricDefinition;
   observation: MetricObservation;
   variant?: 'default' | 'compact';
+  showAsOf?: boolean;
 }) {
   const quality = observation.dataQuality;
   const valueTone = signedToneClass(definition, observation);
@@ -70,7 +72,7 @@ export function MetricCard({
       {quality && quality.status !== 'good' && quality.message ? (
         <p className={`quality quality-${quality.status}`} role="status">{quality.message}</p>
       ) : null}
-      <p className="as-of">As of {formatAsOf(observation.asOf)}</p>
+      {showAsOf ? <p className="as-of">As of {formatAsOf(observation.asOf)}</p> : null}
     </article>
   );
 }
@@ -78,9 +80,11 @@ export function MetricCard({
 export function MetricSlot({
   id,
   metrics,
+  showAsOf = true,
 }: {
   id: string;
   metrics: Record<string, MetricObservation>;
+  showAsOf?: boolean;
 }) {
   const definition = getMetricDefinition(id);
   const observation = metrics[id];
@@ -92,5 +96,5 @@ export function MetricSlot({
       </article>
     );
   }
-  return <MetricCard definition={definition} observation={observation} />;
+  return <MetricCard definition={definition} observation={observation} showAsOf={showAsOf} />;
 }

@@ -1,16 +1,22 @@
 {
   "schemaVersion": "1.0.0",
-  "marketDate": "2026-10-28",
-  "generatedAt": "2026-10-28T17:16:29.885638Z",
-  "pipelineVersion": "22678db",
+  "marketDate": "2026-10-30",
+  "generatedAt": "2026-10-30T14:00:09.314064Z",
+  "pipelineVersion": "4a07436",
   "dataSources": [
-    "bootstrap:no-live-market-data"
+    "FinanceToolkit|pandas",
+    "edgartools",
+    "internal:comparisons:v1",
+    "sp500:file",
+    "yfinance"
   ],
-  "payload": {
-    "mode": "bootstrap",
-    "latestSnapshot": "2026-10-28",
-    "marketDataSource": "yahoo",
-    "available": false,
-    "message": "Live snapshots are not configured; use VITE_DATA_MODE=mock."
+  "mode": "snapshot",
+  "note": "Personal unpaid EOD snapshot. Manual refresh only. Not investment advice. Yahoo data subject to Yahoo terms.",
+  "provenance": {
+    "ohlcv": "yfinance",
+    "indicators": "FinanceToolkit where available; otherwise pandas Wilder/SMA/MACD",
+    "universe": "sp500:file",
+    "comparisons": "internal:v1",
+    "financials": "edgartools cache max-age 30d"
   }
 }

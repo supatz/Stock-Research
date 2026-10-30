@@ -10,9 +10,11 @@ import type { MetricObservation } from '@/domain/types';
 export function Range52WeekCard({
   high,
   low,
+  showAsOf = true,
 }: {
   high?: MetricObservation;
   low?: MetricObservation;
+  showAsOf?: boolean;
 }) {
   const helpDefinition = getMetricDefinition('distance.52w-high');
   const distHigh = typeof high?.rawValue === 'number' ? high.rawValue : null;
@@ -61,7 +63,7 @@ export function Range52WeekCard({
       <p className="metric-reading">
         {high?.interpretation.shortText || low?.interpretation.shortText || '52-week distances are unavailable for this snapshot.'}
       </p>
-      {asOf ? <p className="as-of">As of {formatAsOf(asOf)}</p> : null}
+      {showAsOf && asOf ? <p className="as-of">As of {formatAsOf(asOf)}</p> : null}
     </article>
   );
 }

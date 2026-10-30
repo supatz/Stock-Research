@@ -84,6 +84,12 @@ const STATE_PRESENTATION: Record<string, StatePresentation> = {
   NEWLOW_LEAD: { label: 'More lows than highs', tone: 'caution', icon: 'down' },
   NEW_BALANCED: { label: 'Balanced', tone: 'neutral', icon: 'mixed' },
   COUNT: { label: 'Count', tone: 'neutral', icon: 'neutral' },
+  VWAP_ABOVE: { label: 'Above VWAP', tone: 'positive', icon: 'up' },
+  VWAP_BELOW: { label: 'Below VWAP', tone: 'caution', icon: 'down' },
+  VWAP_AT: { label: 'At VWAP', tone: 'neutral', icon: 'mixed' },
+  VALUATION_LOW: { label: 'Low', tone: 'info', icon: 'down' },
+  VALUATION_AVERAGE: { label: 'Average', tone: 'neutral', icon: 'mixed' },
+  VALUATION_HIGH: { label: 'High', tone: 'caution', icon: 'up' },
 };
 
 export function presentationForState(state: string): StatePresentation {

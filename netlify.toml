@@ -1,11 +1,13 @@
 [build]
-  command = "npm run data:build && npm run test:run && npm run build"
+  # Snapshots are refreshed locally via scripts/refresh.sh --dataset and committed.
+  # Do not re-fetch market data on Netlify while refresh stays manual.
+  command = "npm run test:run && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "24"
   PYTHON_VERSION = "3.11"
-  VITE_DATA_MODE = "mock"
+  VITE_DATA_MODE = "snapshot"
   VITE_DATA_SCHEMA_VERSION = "1"
 
 [[headers]]

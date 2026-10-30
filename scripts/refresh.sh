@@ -8,13 +8,24 @@ LOG_FILE="$LOG_DIR/refresh-$(date +%Y%m%d-%H%M%S).log"
 
 cd "$ROOT_DIR"
 
-refresh_dataset() {
-  echo "Refreshing website snapshot metadata..."
-  if [[ -f package.json ]] && node -e "const p=require('./package.json'); process.exit(p.scripts?.['data:build'] ? 0 : 1)"; then
-    npm run data:build
+pipeline_python() {
+  if [[ -x "$ROOT_DIR/.venv/bin/python" ]]; then
+    echo "$ROOT_DIR/.venv/bin/python"
   else
-    python3 pipeline/run.py
+    echo "python3"
   fi
+}
+
+refresh_dataset() {
+  echo "Refreshing website snapshot (S&P 500 + yfinance; Edgar if cache older than EDGAR_MAX_AGE_DAYS)..."
+  local py
+  py="$(pipeline_python)"
+  if [[ "$py" != *".venv"* ]]; then
+    echo "Note: .venv not found — using system python3. Prefer: python3 -m venv .venv && . .venv/bin/activate && pip install -e 'pipeline[live,dev]'"
+  fi
+  # Does not refresh Wikipedia membership unless sp500.json is missing.
+  # Use: "$py" pipeline/run.py --universe-only   when constituents change.
+  "$py" pipeline/run.py
   echo "Dataset refresh complete."
 }
 

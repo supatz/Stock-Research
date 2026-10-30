@@ -11,6 +11,7 @@ import { SectionHeader } from '@/components/layout/SectionHeader';
 import { formatMarketCap, formatPrice } from '@/domain/metrics/format';
 import { ReferenceTag } from '@/components/layout/ReferenceTag';
 import { FinancialsPanel } from '@/features/stock/FinancialsPanel';
+import { KeyStatisticsPanel } from '@/features/stock/KeyStatisticsPanel';
 import { Range52WeekCard } from '@/features/stock/Range52WeekCard';
 import { RelativeStrengthMatrix } from '@/features/stock/RelativeStrengthMatrix';
 import { ResearchBriefPanel } from '@/features/stock/ResearchBriefPanel';
@@ -98,8 +99,8 @@ export default function StockPage() {
       <ResearchBriefPanel detail={detail} />
 
       <section id="section.stock.snapshot" className="section-block" aria-labelledby="section.stock.snapshot-title">
-        <SectionHeader referenceId="section.stock.snapshot" description="Six separate readings. They do not collapse into a score." />
-        <div className="ribbon">
+        <SectionHeader referenceId="section.stock.snapshot" description="Separate readings including VWAP. They do not collapse into a score." />
+        <div className="ribbon ribbon-7">
           {detail.dimensions.map((dimension) => (
             <button
               key={dimension.id}
@@ -129,15 +130,24 @@ export default function StockPage() {
         </div>
       </section>
 
+      <section id="section.stock.key-statistics" className="section-block" aria-labelledby="section.stock.key-statistics-title">
+        <SectionHeader
+          referenceId="section.stock.key-statistics"
+          description="Quick valuation and size context. P/E and P/B bands are versus this stock’s own history in the fixture set."
+        />
+        <KeyStatisticsPanel stats={detail.keyStatistics} price={summary.price} />
+      </section>
+
       <section id="section.stock.price-performance" className="section-block" aria-labelledby="section.stock.price-performance-title">
         <SectionHeader referenceId="section.stock.price-performance" description={detail.takeaways.performance} />
         <div className="card-grid">
           {['return.1m', 'return.3m', 'return.6m', 'return.1y'].map((id) => (
-            <MetricSlot key={id} id={id} metrics={detail.metrics} />
+            <MetricSlot key={id} id={id} metrics={detail.metrics} showAsOf={false} />
           ))}
           <Range52WeekCard
             high={detail.metrics['distance.52w-high']}
             low={detail.metrics['distance.52w-low']}
+            showAsOf={false}
           />
         </div>
       </section>

@@ -47,9 +47,11 @@ import type {
   SectorId,
   SectorLeadershipRow,
   OHLCVPoint,
+  KeyStatistics,
   StockDetail,
   StockFinancials,
   StockSummary,
+  ValuationBand,
 } from '@/domain/types';
 import { buildSeries, type SeriesStats } from '@/data/mock/history';
 import { BENCHMARKS, STOCKS, exchangeFor, type StockSeed } from '@/data/mock/seeds';
@@ -428,6 +430,7 @@ function makeFinancialPeriod(
   seed: StockSeed,
   hash: number,
   label: string,
+  year: number,
   frequency: 'annual' | 'quarterly',
   age: number,
   scale: number,
@@ -443,12 +446,18 @@ function makeFinancialPeriod(
   const eps = roundTo(netIncome / (shares * 1e9), 2);
   const freeCashFlow = roundTo(netIncome * (0.75 + ((hash + age * 3) % 8) / 20), 2);
   const operatingIncome = roundTo(revenue * (operatingMargin / 100), 2);
+  const yearPrice = seed.price / (growth ** Math.max(0, 2026 - year));
+  const pe = eps > 0 ? roundTo(yearPrice / eps, 1) : null;
+  const sectorPe = pe == null ? null : roundTo(pe * (0.88 + ((hash + year) % 9) / 50), 1);
   return {
     period: label,
+    year,
     frequency,
     revenue,
     netIncome,
     eps,
+    pe,
+    sectorPe,
     grossMargin,
     operatingMargin,
     operatingIncome,
@@ -459,16 +468,17 @@ function makeFinancialPeriod(
 function buildFinancials(seed: StockSeed): StockFinancials {
   const hash = hashTicker(seed.ticker);
   const annual: FinancialPeriod[] = [];
-  for (let year = 2021; year <= 2026; year += 1) {
-    annual.push(makeFinancialPeriod(seed, hash, `FY${year}`, 'annual', year - 2021, 1));
+  // Ten fiscal years ending in the current snapshot year.
+  for (let year = 2017; year <= 2026; year += 1) {
+    annual.push(makeFinancialPeriod(seed, hash, `FY${year}`, year, 'annual', year - 2017, 1));
   }
   const quarterly: FinancialPeriod[] = [];
   let qAge = 0;
   // Through 2026 Q3 to match the Oct 2026 snapshot market date.
-  for (let year = 2023; year <= 2026; year += 1) {
+  for (let year = 2022; year <= 2026; year += 1) {
     for (let quarter = 1; quarter <= 4; quarter += 1) {
       if (year === 2026 && quarter > 3) break;
-      quarterly.push(makeFinancialPeriod(seed, hash, `${year} Q${quarter}`, 'quarterly', qAge / 4, 0.24 + ((hash + quarter) % 5) / 100));
+      quarterly.push(makeFinancialPeriod(seed, hash, `${year} Q${quarter}`, year, 'quarterly', qAge / 4, 0.24 + ((hash + quarter) % 5) / 100));
       qAge += 1;
     }
   }
@@ -482,6 +492,56 @@ function buildFinancials(seed: StockSeed): StockFinancials {
     periods: annual,
     takeaway: `${seed.ticker} financials show ${latest.period} revenue of ${formatDollars(latest.revenue)} with operating margin ${formatPercent(latest.operatingMargin, 1, false)}. Year-over-year revenue is ${formatPercent(revenueGrowth)}.`,
     provenance: 'Deterministic mock fundamentals for interface development — not reported company filings.',
+  };
+}
+
+function valuationBand(value: number | null, average: number | null): ValuationBand | null {
+  if (value == null || average == null || average <= 0) return null;
+  const ratio = value / average;
+  if (ratio < 0.9) return 'low';
+  if (ratio > 1.1) return 'high';
+  return 'average';
+}
+
+function buildKeyStatistics(
+  seed: StockSeed,
+  stats: SeriesStats,
+  financials: StockFinancials,
+): KeyStatistics {
+  const hash = hashTicker(seed.ticker);
+  const latest = financials.annual[financials.annual.length - 1];
+  const peHistory = financials.annual.map((row) => row.pe).filter((value): value is number => value != null && value > 0);
+  const peAverage = peHistory.length
+    ? roundTo(peHistory.reduce((sum, value) => sum + value, 0) / peHistory.length, 1)
+    : null;
+  const pe = latest?.pe ?? null;
+  const sectorPe = latest?.sectorPe ?? null;
+  const bookPerShare = roundTo(seed.price / (2.2 + (hash % 18) / 10), 2);
+  const pb = bookPerShare > 0 ? roundTo(seed.price / bookPerShare, 2) : null;
+  const pbAverage = pb == null ? null : roundTo(pb * (0.92 + (hash % 7) / 50), 2);
+  const beta = roundTo(0.55 + (hash % 140) / 100, 2);
+  const week52High = stats.distHigh == null || stats.distHigh <= -1
+    ? null
+    : roundTo(stats.last / (1 + stats.distHigh / 100), 2);
+  const week52Low = stats.distLow == null || stats.distLow <= -100
+    ? null
+    : roundTo(stats.last / (1 + stats.distLow / 100), 2);
+  const vwap = roundTo(stats.last * (0.992 + ((hash % 17) / 1000)), 2);
+  const vwapVsPricePct = roundTo(((stats.last / vwap) - 1) * 100, 2);
+  return {
+    pe,
+    peBand: valuationBand(pe, peAverage),
+    peAverage,
+    sectorPe,
+    pb,
+    pbBand: valuationBand(pb, pbAverage),
+    pbAverage,
+    beta,
+    marketCap: seed.marketCapB * 1e9,
+    week52High,
+    week52Low,
+    vwap,
+    vwapVsPricePct,
   };
 }
 
@@ -713,6 +773,14 @@ function assembleStock(
 
   const direction = stats.changePct >= 0 ? 'up' : 'down';
   const financials = buildFinancials(seed);
+  const keyStatistics = buildKeyStatistics(seed, stats, financials);
+  const vwapState = keyStatistics.vwapVsPricePct == null
+    ? 'UNAVAILABLE'
+    : keyStatistics.vwapVsPricePct > 0.15
+      ? 'VWAP_ABOVE'
+      : keyStatistics.vwapVsPricePct < -0.15
+        ? 'VWAP_BELOW'
+        : 'VWAP_AT';
   const detail: StockDetail = {
     summary,
     metrics,
@@ -756,6 +824,16 @@ function assembleStock(
         shortText: participation.shortText,
         primary: formatMultiple(seed.rvol),
         sectionId: 'section.stock.volume',
+      },
+      {
+        id: 'vwap',
+        label: 'VWAP',
+        state: vwapState,
+        shortText: keyStatistics.vwap == null
+          ? 'VWAP is unavailable in this snapshot.'
+          : `Price is ${formatPercent(keyStatistics.vwapVsPricePct)} versus session VWAP.`,
+        primary: keyStatistics.vwap == null ? '—' : formatPrice(keyStatistics.vwap),
+        sectionId: 'section.stock.key-statistics',
       },
       {
         id: 'market',
@@ -808,6 +886,7 @@ function assembleStock(
       windowComplete: stats.windowComplete,
     },
     financials,
+    keyStatistics,
     sessions: stats.sessions,
   };
 
